@@ -1,4 +1,4 @@
-use rusqlite::Connection;
+use rusqlite::{Connection, OptionalExtension};
 
 use crate::annotation::{Annotation, RecordType};
 use crate::tag::Tag;
@@ -103,13 +103,31 @@ pub fn set_description(
 }
 
 /// Append tags to an existing record. Used by `tag`.
+/// Returns `true` if the record was found, `false` if it doesn't exist.
 pub fn add_tags(
     conn: &Connection,
     record_type: RecordType,
     ref_: &str,
     tags: &[Tag],
-) -> anyhow::Result<()> {
-    todo!("add_tags type={} ref={} tags={:?}", record_type, ref_, tags)
+) -> anyhow::Result<bool> {
+    let record_id: Option<i64> = conn.query_row(
+        "SELECT id FROM records WHERE type = ?1 AND ref = ?2",
+        rusqlite::params![record_type.to_string(), ref_],
+        |row| row.get(0),
+    ).optional()?;
+
+    let Some(id) = record_id else {
+        return Ok(false);
+    };
+
+    for tag in tags {
+        conn.execute(
+            "INSERT OR IGNORE INTO tags (record_id, token) VALUES (?1, ?2)",
+            rusqlite::params![id, tag.to_token()],
+        )?;
+    }
+
+    Ok(true)
 }
 
 /// Remove specific tags from a record. Used by `rm <tags>`.
@@ -272,6 +290,40 @@ mod tests {
         let results = list(&conn, None, None, None, &filter).unwrap();
         assert_eq!(results.len(), 1);
         assert_eq!(results[0].ref_, "tx-both");
+    }
+
+    #[test]
+    fn add_tags_appends_to_existing() {
+        let conn = open_in_memory();
+        let mut a = tx("abcd1234");
+        a.tags = vec![Tag::parse("kyc:").unwrap()];
+        upsert(&conn, &a, None).unwrap();
+
+        let found = add_tags(&conn, RecordType::Tx, "abcd1234", &[Tag::parse("exchange:kraken").unwrap()]).unwrap();
+        assert!(found);
+
+        let results = list(&conn, None, None, None, &[]).unwrap();
+        assert_eq!(results[0].tags.len(), 2);
+    }
+
+    #[test]
+    fn add_tags_ignores_duplicates() {
+        let conn = open_in_memory();
+        let mut a = tx("abcd1234");
+        a.tags = vec![Tag::parse("kyc:").unwrap()];
+        upsert(&conn, &a, None).unwrap();
+
+        add_tags(&conn, RecordType::Tx, "abcd1234", &[Tag::parse("kyc:").unwrap()]).unwrap();
+
+        let results = list(&conn, None, None, None, &[]).unwrap();
+        assert_eq!(results[0].tags.len(), 1);
+    }
+
+    #[test]
+    fn add_tags_returns_false_when_missing() {
+        let conn = open_in_memory();
+        let found = add_tags(&conn, RecordType::Tx, "doesnotexist", &[Tag::parse("kyc:").unwrap()]).unwrap();
+        assert!(!found);
     }
 
     #[test]

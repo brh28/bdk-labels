@@ -122,7 +122,14 @@ fn main() -> anyhow::Result<()> {
             }
         }
         Command::Tag { annotation, tags } => {
-            todo!("tag annotation={:?} tags={:?}", annotation, tags)
+            let (record_type, ref_) = annotation.split();
+            let tag_values: Vec<Tag> = tags.iter().filter_map(|s| Tag::parse(s)).collect();
+            let found = db::add_tags(&conn, record_type, ref_, &tag_values)?;
+            if found {
+                println!("Added {} tag(s) to {record_type} {ref_}", tag_values.len());
+            } else {
+                anyhow::bail!("no annotation found for {record_type} {ref_} — use 'add' to create it first");
+            }
         }
         Command::Rm { annotation, tags, force } => {
             if tags.is_empty() && !force {
