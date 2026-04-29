@@ -1,0 +1,10 @@
+{"type":"xpub","ref":"xpub661MyMwAqRbcFtXgS5sYJABqqG9YLmC4Q1Rdap9gSE8NqtwybGhePY2gZ29ESFjqJoCu1Rupje8YtGqsefD265TMg7usUDFdp6W1EGMcet8","label":"savings wallet"}
+{"type":"tx","ref":"aabb1234567890abcdef1234567890abcdef1234567890abcdef123456789012","label":"initial funding","origin":"wpkh([a1b2c3d4/84h/0h/0h])"}
+{"type":"tx","ref":"beef1234567890abcdef1234567890abcdef1234567890abcdef123456789034","label":"exchange withdrawal","origin":"wpkh([a1b2c3d4/84h/0h/0h])"}
+{"type":"tx","ref":"cafe1234567890abcdef1234567890abcdef1234567890abcdef123456789056","label":"payment to vendor","origin":"wpkh([a1b2c3d4/84h/0h/0h])"}
+{"type":"addr","ref":"bc1q34aq5drpuwy3wgl9lhup9892qp6svr8ldzyy7c","label":"savings deposit"}
+{"type":"pubkey","ref":"0283409659355b6d1cc3c32decd5d561abaac86c37a353b52895a5e6c196d6f448","label":"cold storage key"}
+{"type":"output","ref":"aabb1234567890abcdef1234567890abcdef1234567890abcdef123456789012:0","label":"funding output","spendable":true}
+{"type":"output","ref":"beef1234567890abcdef1234567890abcdef1234567890abcdef123456789034:0","label":"withdrawal received"}
+{"type":"output","ref":"beef1234567890abcdef1234567890abcdef1234567890abcdef123456789034:1","label":"withdrawal change","spendable":false}
+{"type":"input","ref":"cafe1234567890abcdef1234567890abcdef1234567890abcdef123456789056:0","label":"payment input"}
